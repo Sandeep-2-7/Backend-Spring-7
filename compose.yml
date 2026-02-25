@@ -1,0 +1,11 @@
+services:
+  dbservices:
+    image: mysql:latest
+    container_name: jobportaldb
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: jobportal
+    volumes:
+      - S:/Inside/SHIFT/Java_Madhan/jobportal-data:/var/lib/mysql
