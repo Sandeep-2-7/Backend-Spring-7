@@ -28,8 +28,6 @@ public class ContactServiceImpl implements IContactService {
     public Contact  transformToDto(ContactRequestDto contactReqDto){
         Contact c = new Contact();
         BeanUtils.copyProperties(contactReqDto,c);
-        c.setCreatedAt(Instant.now());
-        c.setCreatedBy("SYSTEM");
         c.setStatus("NEW");
         return c;
     }
