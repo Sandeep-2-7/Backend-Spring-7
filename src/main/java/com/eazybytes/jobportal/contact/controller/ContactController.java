@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class ContactController {
 
     private final IContactService contactService;
-    @PostMapping(version = "1.0")
+    @PostMapping(path = "/public", version = "1.0")
     public ResponseEntity<String> saveContactMsg(@RequestBody @Valid ContactRequestDto contactReqDto){
         boolean b = contactService.saveContact(contactReqDto);
         if(b)
@@ -24,10 +24,10 @@ public class ContactController {
         return ResponseEntity.internalServerError().body("Request failed");
     }
 
-    @GetMapping(value = "/openContacts", version = "1.0")
-    public ResponseEntity<String>  fetchOpenContacts(@RequestParam
-                                                         @Validated @NotBlank(message = "Name should not be blank")
-                                                         String name){
-        return ResponseEntity.ok().body("Hi");
-    }
+//    @GetMapping(value = "/openContacts", version = "1.0")
+//    public ResponseEntity<String>  fetchOpenContacts(@RequestParam
+//                                                         @Validated @NotBlank(message = "Name should not be blank")
+//                                                         String name){
+//        return ResponseEntity.ok().body("Hi");
+//    }
 }
