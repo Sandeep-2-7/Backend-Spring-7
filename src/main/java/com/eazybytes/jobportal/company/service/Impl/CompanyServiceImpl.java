@@ -1,10 +1,13 @@
 package com.eazybytes.jobportal.company.service.Impl;
 
 import com.eazybytes.jobportal.dto.CompanyDto;
+import com.eazybytes.jobportal.dto.JobDto;
 import com.eazybytes.jobportal.entity.Company;
+import com.eazybytes.jobportal.entity.Job;
 import com.eazybytes.jobportal.repository.CompanyRepository;
 import com.eazybytes.jobportal.company.service.ICompanyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,11 +26,45 @@ public class CompanyServiceImpl implements ICompanyService {
     @Override
     public List<CompanyDto> getAllCompanies() {
        List<Company> listOfCompanies=  companyRepository.findAll();
-       return listOfCompanies.stream().map(this::TransformToDto).collect(Collectors.toList());
+       return listOfCompanies.stream().map(this::TransformToCompanyDto).collect(Collectors.toList());
     }
 
-    private CompanyDto TransformToDto(Company company){
-        CompanyDto dto = new CompanyDto(company.getId(),company.getName(), company.getLogo(), company.getIndustry(), company.getSize(), company.getRating(), company.getLocations(), company.getFounded(), company.getDescription(), company.getEmployees(), company.getWebsite(), company.getCreatedAt());
+    private CompanyDto TransformToCompanyDto(Company company){
+        List<JobDto> jobDtos = company.getJobs().stream()
+                .map(this::transformJobToDto)
+                .collect(Collectors.toList());
+
+        CompanyDto dto = new CompanyDto(company.getId(),company.getName(), company.getLogo(), company.getIndustry(), company.getSize(), company.getRating(), company.getLocations(), company.getFounded(), company.getDescription(), company.getEmployees(), company.getWebsite(), company.getCreatedAt(),jobDtos);
+        return dto;
+    }
+
+    private JobDto transformJobToDto(Job job){
+        JobDto dto = new JobDto(
+                job.getId(),
+                job.getTitle(),
+                job.getCompany().getId(),
+                job.getCompany().getName(),
+                job.getCompany().getLogo(),
+                job.getLocation(),
+                job.getWorkType(),
+                job.getJobType(),
+                job.getCategory(),
+                job.getExperienceLevel(),
+                job.getSalaryMin(),
+                job.getSalaryMax(),
+                job.getSalaryCurrency(),
+                job.getSalaryPeriod(),
+                job.getDescription(),
+                job.getRequirements(),
+                job.getBenefits(),
+                job.getPostedDate(),
+                job.getApplicationDeadline(),
+                job.getApplicationsCount(),
+                job.getFeatured(),
+                job.getUrgent(),
+                job.getRemote(),
+                job.getStatus()
+        );
         return dto;
     }
 }

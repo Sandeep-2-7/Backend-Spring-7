@@ -2,12 +2,15 @@ package com.eazybytes.jobportal.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
+//@RequiredArgsConstructor
 public class CompanyDto {
 
     private final Long id;
@@ -22,4 +25,5 @@ public class CompanyDto {
     private final Integer employees;
     private final String website;
     private final Instant createdAt;
+    private final List<JobDto> jobs;
 }
