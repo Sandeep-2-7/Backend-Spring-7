@@ -1,9 +1,13 @@
 package com.eazybytes.jobportal.security;
 
+import com.eazybytes.jobportal.security.filter.JwtTokenValidatorFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -59,7 +64,9 @@ public class JobPortalSecurityConfig {
 //                .requestMatchers("/api/companies/public").permitAll()
 //                .requestMatchers("/api/contacts/public").permitAll()
 //                                requests.requestMatchers(RegexRequestMatcher.regexMatcher(".*public$")).permitAll()
-                );
+                )
+                .addFilterBefore(new JwtTokenValidatorFilter(publicPaths), BasicAuthenticationFilter.class);
+
         http.formLogin(fl->fl.disable());
         http.httpBasic(Customizer.withDefaults());
         return http.build();
@@ -79,13 +86,21 @@ public class JobPortalSecurityConfig {
         return source;
     }
 
+
+    @Bean
+    public AuthenticationManager authManager(){
+        var provider = new DaoAuthenticationProvider(userDetailsService());
+        provider.setPasswordEncoder(passwordEncoder());
+        return new ProviderManager(provider);
+    }
+
     @Bean
     public UserDetailsService userDetailsService() {
-
-        var pass1 = passwordEncoder().encode("Sandeep123");
-        var pass2 = passwordEncoder().encode("Admin123");
-        System.out.println(pass1);
-        System.out.println(pass2);
+//
+//        var pass1 = passwordEncoder().encode("Sandeep123");
+//        var pass2 = passwordEncoder().encode("Admin123");
+//        System.out.println(pass1);
+//        System.out.println(pass2);
 
         var user1 = User.builder().username("Sandeep").password("$2a$10$3mCXKgAKbrA7/LUmErqoPOWvY/e73A2OBmSlX2YAsC3w9H.oVJJZe").roles("USER").build();
 
