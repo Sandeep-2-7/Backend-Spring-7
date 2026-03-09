@@ -30,8 +30,8 @@ import java.util.List;
 public class JwtTokenValidatorFilter extends OncePerRequestFilter {
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
-    @Qualifier("publicpath")
-    private final List<String> publicpaths;
+    @Qualifier("publicPaths")
+    private final List<String> publicPaths;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -63,14 +63,14 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
             catch (Exception e){
                 throw new BadCredentialsException("Invalid Token");
             }
-
-            filterChain.doFilter(request, response);
         }
+        filterChain.doFilter(request, response);
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String paths = request.getRequestURI();
-        return publicpaths.stream().anyMatch(m -> pathMatcher.match(m,paths));
+        String path = request.getRequestURI();
+        return publicPaths.stream().anyMatch(publicPath ->
+                pathMatcher.match(publicPath, path));
     }
 }

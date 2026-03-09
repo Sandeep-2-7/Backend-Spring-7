@@ -6,18 +6,20 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -30,6 +32,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class JobPortalSecurityConfig {
 //
 //    private final PathConfig pathConfig;
@@ -37,24 +40,27 @@ public class JobPortalSecurityConfig {
 //    List<String>  publicPath = pathConfig.publicPath();
 //    List<String>  securedPath = pathConfig.securedPath();
 
-    @Qualifier("publicpath")
+    @Qualifier("publicPaths")
     private final List<String> publicPaths;
 
-    @Qualifier("securedpath")
+    @Qualifier("securedPaths")
     private final List<String> securedPaths;
 
-    public JobPortalSecurityConfig(
-            @Qualifier("publicpath") List<String> publicPaths,
-            @Qualifier("securedpath") List<String> securedPaths
-    ) {
-        this.publicPaths = publicPaths;
-        this.securedPaths = securedPaths;
-    }
+
+
+    //    public JobPortalSecurityConfig(
+    //            @Qualifier("publicPaths") List<String> publicPaths,
+    //            @Qualifier("securedPaths") List<String> securedPaths
+    //    ) {
+    //        this.publicPaths = publicPaths;
+    //        this.securedPaths = securedPaths;
+    //    }
 
     @Bean
     SecurityFilterChain customSecurityFilterChain(HttpSecurity http) {
 //        http.authorizeHttpRequests((requests) -> ((AuthorizeHttpRequestsConfigurer.AuthorizedUrl)requests.anyRequest()).authenticated());
-        http.csrf(csrf->csrf.disable())
+        http.csrf(csrfConfig-> csrfConfig.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(requests -> {
                             publicPaths.forEach(path -> requests.requestMatchers(path).permitAll());
@@ -88,29 +94,33 @@ public class JobPortalSecurityConfig {
 
 
     @Bean
-    public AuthenticationManager authManager(){
-        var provider = new DaoAuthenticationProvider(userDetailsService());
-        provider.setPasswordEncoder(passwordEncoder());
-        return new ProviderManager(provider);
+    public AuthenticationManager authenticationManager(JobPortalUsernamePwdAuthenticationProvider authenticationProvider) {
+        return new ProviderManager(authenticationProvider);
     }
 
-    @Bean
-    public UserDetailsService userDetailsService() {
+
+//    @Bean
+//    public UserDetailsService userDetailsService() {
+////
+////        var pass1 = passwordEncoder().encode("Sandeep123");
+////        var pass2 = passwordEncoder().encode("Admin123");
+////        System.out.println(pass1);
+////        System.out.println(pass2);
 //
-//        var pass1 = passwordEncoder().encode("Sandeep123");
-//        var pass2 = passwordEncoder().encode("Admin123");
-//        System.out.println(pass1);
-//        System.out.println(pass2);
-
-        var user1 = User.builder().username("Sandeep").password("$2a$10$3mCXKgAKbrA7/LUmErqoPOWvY/e73A2OBmSlX2YAsC3w9H.oVJJZe").roles("USER").build();
-
-        var user2 = User.builder().username("Admin").password("$2a$10$CTpVx67ojjp2c6L3tru.wOVrmWcpvpjSi0V9xtAyXBmffPoYcViCK").roles("ADMIN").build();
-
-        return new InMemoryUserDetailsManager(user1, user2);
-    }
+//        var user1 = User.builder().username("Sandeep").password("$2a$10$3mCXKgAKbrA7/LUmErqoPOWvY/e73A2OBmSlX2YAsC3w9H.oVJJZe").roles("USER").build();
+//
+//        var user2 = User.builder().username("Admin").password("$2a$10$CTpVx67ojjp2c6L3tru.wOVrmWcpvpjSi0V9xtAyXBmffPoYcViCK").roles("ADMIN").build();
+//
+//        return new InMemoryUserDetailsManager(user1, user2);
+//    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CompromisedPasswordChecker compromisedPasswordChecker(){
+        return new HaveIBeenPwnedRestApiPasswordChecker();
     }
 }
 

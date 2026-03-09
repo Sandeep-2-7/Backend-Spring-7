@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
+import org.springframework.security.authentication.password.CompromisedPasswordDecision;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,33 +35,47 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthController{
 
-    private final AuthenticationManager authManager;
+    private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
-    private final RoleRepository roleRepository;
     private final JobPortalUserRepository jobPortalUserRepository;
+    private final RoleRepository roleRepository;
+    private final CompromisedPasswordChecker compromisedPasswordChecker;
+
 
     @PostMapping(value = "/login/public", version = "1.0")
     public ResponseEntity<LoginResponseDto>  login(@RequestBody LoginRequestDto loginReq){
         try{
-            var resultAuth = authManager.authenticate(new UsernamePasswordAuthenticationToken(loginReq.username(), loginReq.password()));
+            var resultAuth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginReq.username(), loginReq.password()));
             String jwtToken = jwtUtil.generateJWT(resultAuth);
             UserDto user = new UserDto();
-            return new ResponseEntity<>(new LoginResponseDto("Ay yooo Login Successful", user,jwtToken), HttpStatus.OK);
+            JobPortalUser loggedInUser = (JobPortalUser)resultAuth.getPrincipal();
+            BeanUtils.copyProperties(loggedInUser,user);
+            user.setRole(loggedInUser.getRole().getName());
+            user.setUserId(loggedInUser.getId());
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new LoginResponseDto(HttpStatus.OK.getReasonPhrase(),
+                            user, jwtToken));
+        } catch (BadCredentialsException ex) {
+            return errorResponse(HttpStatus.UNAUTHORIZED,
+                    "Invalid username or password");
+        } catch (AuthenticationException ex) {
+            return errorResponse(HttpStatus.UNAUTHORIZED,
+                    "Authentication failed");
+        } catch (Exception ex) {
+            return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "An unexpected error occurred");
         }
-        catch (BadCredentialsException badCredException){
-            return errorResponse(HttpStatus.UNAUTHORIZED,"Ay yooo "+ loginReq.username()+" check ur credentials");
-        }
-        catch (AuthenticationException authException){
-            return errorResponse(HttpStatus.UNAUTHORIZED,"Ay yooo "+loginReq.username()+" Authentication failed");
-        }
-        catch (Exception ex){
-            return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR," loginReq.username() "+"Internal Server Error Yoo");
-        }
+
     }
 
     @PostMapping(value = "/register/public", version = "1.0")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequestDto registerReq){
+
+        CompromisedPasswordDecision decision = compromisedPasswordChecker.check(registerReq.getPassword());
+        if(decision.isCompromised()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please choose a strong password");
+        }
         Optional<JobPortalUser> existingUser = jobPortalUserRepository.readJobPortalUserByEmailOrMobileNumber(registerReq.getEmail(),registerReq.getMobileNumber());
         if(existingUser.isPresent()){
             Map<String , String> errors = new HashMap<>();

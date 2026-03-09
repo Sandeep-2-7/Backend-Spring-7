@@ -8,11 +8,13 @@ import java.util.List;
 @Configuration
 public class PathConfig {
 
-    @Bean(value = "publicpath")
+    @Bean(value = "publicPaths")
     public List<String> publicPaths(){
         return List.of(
                 "/api/auth/login/public",
+                "/api/companies/public",
                 "/api/auth/register/public",
+                "/api/csrf-token/public",
                 "/api/contacts/public",
                 "/api/swagger-ui.html",
                 "/swagger-ui/**",
@@ -22,9 +24,9 @@ public class PathConfig {
                 "/webjars/**");
     }
 
-    @Bean(value = "securedpath")
+    @Bean(value = "securedPaths")
     public List<String> securedPaths(){
-        return List.of("/api/companies/public","/api/**");
+        return List.of("/api/**");
     }
 
 }
