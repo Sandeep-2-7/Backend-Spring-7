@@ -50,4 +50,9 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(errors);
     }
+
+    @ExceptionHandler(RegistrationValidationException.class)
+    public ResponseEntity<Map<String, String>> handleRegistraionException(RegistrationValidationException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getErrors());
+    }
 }
