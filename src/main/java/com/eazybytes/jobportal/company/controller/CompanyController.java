@@ -26,6 +26,8 @@ public class CompanyController {
     @GetMapping(path="/public", version = "1.0")
     public ResponseEntity<List<CompanyDto>> getAllCompanies(){
         List<CompanyDto> companyList = companyService.getAllCompanies();
+//        throw new RuntimeException("AOP Testing");
         return ResponseEntity.ok().body(companyList);
+
     }
 }
