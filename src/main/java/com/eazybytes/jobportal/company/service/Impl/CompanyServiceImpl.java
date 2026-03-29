@@ -1,5 +1,6 @@
 package com.eazybytes.jobportal.company.service.Impl;
 
+import com.eazybytes.jobportal.constants.ApplicationConstants;
 import com.eazybytes.jobportal.dto.CompanyDto;
 import com.eazybytes.jobportal.dto.JobDto;
 import com.eazybytes.jobportal.entity.Company;
@@ -7,6 +8,7 @@ import com.eazybytes.jobportal.entity.Job;
 import com.eazybytes.jobportal.repository.CompanyRepository;
 import com.eazybytes.jobportal.company.service.ICompanyService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +27,7 @@ public class CompanyServiceImpl implements ICompanyService {
 
     @Override
     public List<CompanyDto> getAllCompanies() {
-       List<Company> listOfCompanies=  companyRepository.findAll();
+       List<Company> listOfCompanies=  companyRepository.findAllWithJobsByStatus(ApplicationConstants.ACTIVE_STATUS);
        return listOfCompanies.stream().map(this::TransformToCompanyDto).collect(Collectors.toList());
     }
 
