@@ -1,6 +1,8 @@
 package com.eazybytes.jobportal.security;
 
 import com.eazybytes.jobportal.security.filter.JwtTokenValidatorFilter;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +48,8 @@ public class JobPortalSecurityConfig {
     @Qualifier("securedPaths")
     private final List<String> securedPaths;
 
+    @Qualifier("adminPaths")
+    private final List<String> adminPaths;
 
 
     //    public JobPortalSecurityConfig(
@@ -64,7 +68,9 @@ public class JobPortalSecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(requests -> {
                             publicPaths.forEach(path -> requests.requestMatchers(path).permitAll());
+                            adminPaths.forEach(path -> requests.requestMatchers(path).hasRole("ADMIN"));
                             securedPaths.forEach(path -> requests.requestMatchers(path).authenticated());
+
                             requests.anyRequest().denyAll();
                         }
 //                .requestMatchers("/api/companies/public").permitAll()
@@ -74,7 +80,13 @@ public class JobPortalSecurityConfig {
                 .addFilterBefore(new JwtTokenValidatorFilter(publicPaths), BasicAuthenticationFilter.class);
 
         http.formLogin(fl->fl.disable());
-        http.httpBasic(Customizer.withDefaults());
+        http.httpBasic(hb -> hb.disable());
+        http.exceptionHandling(eh -> eh.accessDeniedHandler((request, response, accessDeniedException) -> {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Access Denied\", \"message\":\"You don't have permission to access this resource\"}");
+
+        }));
         return http.build();
     }
 

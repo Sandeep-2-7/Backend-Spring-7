@@ -29,4 +29,9 @@ public class PathConfig {
         return List.of("/api/**");
     }
 
+    @Bean(value = "adminPaths")
+    public List<String> adminPaths(){
+        return List.of("/api/contacts/admin", "/api/contacts/sort/admin");
+    }
+
 }
