@@ -8,6 +8,8 @@ import com.eazybytes.jobportal.entity.Contact;
 import com.eazybytes.jobportal.repository.ContactRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +46,15 @@ public class ContactServiceImpl implements IContactService {
         List<Contact>  contacts = contactRepository.findContactByStatus(ApplicationConstants.NEW_MSG,by);
         List<ContactResponseDto> contactDto = contacts.stream().map(this::transformtoDto).toList();
         return contactDto;
+    }
+
+    @Override
+    public Page<ContactResponseDto> fetchOpenContactsWithPaginationAndSort(int pageCount, int pageSize, String sortBy, String sortDir)
+    {
+        Sort by = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        PageRequest request = PageRequest.of(pageCount, pageSize,by);
+        Page<Contact> contacts = contactRepository.findContactByStatus(ApplicationConstants.NEW_MSG,request);
+        return contacts.map(this::transformtoDto);
     }
 
     public ContactResponseDto transformtoDto(Contact contact){

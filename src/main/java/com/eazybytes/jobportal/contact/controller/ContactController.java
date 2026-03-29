@@ -6,6 +6,7 @@ import com.eazybytes.jobportal.dto.ContactResponseDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +48,16 @@ public class ContactController {
     public ResponseEntity<List<ContactResponseDto>> fetchOpenContactMsgsWithSort(@RequestParam(defaultValue = "createdAt") String sort,
                                                                                  @RequestParam(defaultValue = "Asc") String order){
         List<ContactResponseDto> openContactMsgs = contactService.fetchOpenContactsWithSort(sort, order);
+        return ResponseEntity.status(HttpStatus.OK).body(openContactMsgs);
+    }
+
+    @GetMapping("/page/admin")
+    public ResponseEntity<Page<ContactResponseDto>> fetchOpenContactMsgsWithPaginationAndSort
+                                                    (@RequestParam(defaultValue = "0") int pageCount,
+                                                     @RequestParam(defaultValue = "10") int pageSize,
+                                                     @RequestParam(defaultValue = "createdAt") String sortBy,
+                                                     @RequestParam(defaultValue = "Asc") String sortDir){
+        Page<ContactResponseDto> openContactMsgs = contactService.fetchOpenContactsWithPaginationAndSort(pageCount, pageSize, sortBy, sortDir);
         return ResponseEntity.status(HttpStatus.OK).body(openContactMsgs);
     }
 }
