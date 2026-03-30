@@ -47,7 +47,7 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
                 SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
                 if(secretKey!=null){
                     Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(jwt).getPayload();
-                    String userName = (String)claims.get("username");
+                    String userName = (String)claims.get("email");
                     String roles = (String)claims.get("roles");
 
                     Authentication authentication = new UsernamePasswordAuthenticationToken(userName,null, AuthorityUtils.commaSeparatedStringToAuthorityList(roles));
@@ -57,7 +57,7 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
             }
             catch (ExpiredJwtException e){
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Toke Expired");
+                response.getWriter().write("Token Expired");
                 return;
             }
             catch (Exception e){

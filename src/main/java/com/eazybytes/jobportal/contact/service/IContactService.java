@@ -13,4 +13,6 @@ public interface IContactService {
     List<ContactResponseDto> fetchOpenContactsWithSort(String sort, String order);
 
     Page<ContactResponseDto> fetchOpenContactsWithPaginationAndSort (int page, int pageSize, String sort, String order);
+
+    boolean closeContactMsg(Long id, String status);
 }
