@@ -10,7 +10,7 @@ public class ApplicationUtility {
     public static String getLoggedInUser(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if(authentication != null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")){
+        if(authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")){
             return ApplicationConstants.SYSTEM;
         }
 
