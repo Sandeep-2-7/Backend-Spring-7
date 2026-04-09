@@ -8,6 +8,7 @@ import com.eazybytes.jobportal.entity.Job;
 import com.eazybytes.jobportal.repository.CompanyRepository;
 import com.eazybytes.jobportal.company.service.ICompanyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,32 @@ public class CompanyServiceImpl implements ICompanyService {
     public List<CompanyDto> getAllCompanies() {
        List<Company> listOfCompanies=  companyRepository.findAllWithJobsByStatus(ApplicationConstants.ACTIVE_STATUS);
        return listOfCompanies.stream().map(this::TransformToCompanyDto).collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public boolean createCompany(CompanyDto companyDto) {
+        Company company = TransformDtoToEntity(companyDto);
+        Company savedCompany = companyRepository.save(company);
+        return savedCompany.getId()!=null && savedCompany.getId()>0 ;
+    }
+
+    @Override
+    public List<CompanyDto> getAllCompaniesForAdmin() {
+        List<Company> companies = companyRepository.findAll();
+        return companies.stream().map(this::TransformToCompanyDtoForAdmin).toList();
+    }
+
+    private CompanyDto TransformToCompanyDtoForAdmin(Company company) {
+        return new CompanyDto(company.getId(), company.getName(), company.getLogo(), company.getIndustry(), company.getSize(),
+                company.getRating(), company.getLocations(),company.getFounded(),company.getDescription(), company.getEmployees(),company.getWebsite(),company.getCreatedAt(), null);
+    }
+
+
+    private Company TransformDtoToEntity(CompanyDto dto){
+        Company company = new Company();
+        BeanUtils.copyProperties(dto,company);
+        return company;
     }
 
     private CompanyDto TransformToCompanyDto(Company company){
