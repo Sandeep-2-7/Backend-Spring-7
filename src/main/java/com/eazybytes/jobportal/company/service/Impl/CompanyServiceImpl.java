@@ -32,6 +32,18 @@ public class CompanyServiceImpl implements ICompanyService {
        return listOfCompanies.stream().map(this::TransformToCompanyDto).collect(Collectors.toList());
     }
 
+    @Override
+    public List<CompanyDto> getAllCompaniesForAdmin() {
+        List<Company> companies = companyRepository.findAll();
+        return companies.stream().map(this::TransformToCompanyDtoForAdmin).toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteCompanyDetails(Long id) {
+        companyRepository.deleteById(id);
+    }
+
     @Transactional
     @Override
     public boolean createCompany(CompanyDto companyDto) {
@@ -41,14 +53,18 @@ public class CompanyServiceImpl implements ICompanyService {
     }
 
     @Override
-    public List<CompanyDto> getAllCompaniesForAdmin() {
-        List<Company> companies = companyRepository.findAll();
-        return companies.stream().map(this::TransformToCompanyDtoForAdmin).toList();
+    @Transactional
+    public boolean updateCompanyDetails(Long id, CompanyDto companyDto) {
+        int count = companyRepository.updateCompanyDetails(id,companyDto.getName(), companyDto.getLogo(), companyDto.getIndustry(), companyDto.getSize(), companyDto.getRating(), companyDto.getLocations()
+        , companyDto.getFounded(), companyDto.getDescription(), companyDto.getEmployees(), companyDto.getWebsite());
+        return count > 0;
     }
+
 
     private CompanyDto TransformToCompanyDtoForAdmin(Company company) {
         return new CompanyDto(company.getId(), company.getName(), company.getLogo(), company.getIndustry(), company.getSize(),
-                company.getRating(), company.getLocations(),company.getFounded(),company.getDescription(), company.getEmployees(),company.getWebsite(),company.getCreatedAt(), null);
+                company.getRating(), company.getLocations(),company.getFounded(),company.getDescription(), company.getEmployees(),
+                company.getWebsite(),company.getCreatedAt(), null);
     }
 
 

@@ -12,4 +12,8 @@ public interface ICompanyService {
     boolean createCompany(CompanyDto companyDto);
 
     List<CompanyDto> getAllCompaniesForAdmin();
+
+    boolean updateCompanyDetails(Long id, CompanyDto companyDto);
+
+    void deleteCompanyDetails(Long id);
 }

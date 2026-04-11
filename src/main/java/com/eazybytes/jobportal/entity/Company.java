@@ -14,6 +14,11 @@ import java.util.List;
 @Table(name = "COMPANIES")
 @Getter
 @Setter
+@NamedQueries({
+        @NamedQuery(name = "company.updateCompanyDetails", query = "UPDATE Company c SET c.name=:name, c.logo=:logo, c.industry=:industry, c.size=:size," +
+                "c.rating=:rating, c.locations=:locations, c.founded=:founded, c.description=:description, c.employees=:employees," +
+                "c.website=:website where c.id=:id")
+})
 public class Company extends BaseEntity{
 
     @Id

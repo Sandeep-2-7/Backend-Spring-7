@@ -3,6 +3,8 @@ package com.eazybytes.jobportal.company.controller;
 import com.eazybytes.jobportal.dto.CompanyDto;
 import com.eazybytes.jobportal.company.service.ICompanyService;
 import com.eazybytes.jobportal.entity.Company;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
@@ -33,7 +35,7 @@ public class CompanyController {
     }
 
     @PostMapping(path = "/admin", version = "1.0")
-    public ResponseEntity<String> createCompany(@RequestBody CompanyDto companyDto){
+    public ResponseEntity<String> createCompany(@RequestBody @Valid CompanyDto companyDto){
         boolean isCreated = companyService.createCompany(companyDto);
         if(isCreated){
             return ResponseEntity.status(HttpStatus.OK).body("Company created successfully");
@@ -47,5 +49,21 @@ public class CompanyController {
             List<CompanyDto> companyList = companyService.getAllCompaniesForAdmin();
 
             return ResponseEntity.status(HttpStatus.OK).body(companyList);
+    }
+
+    @PutMapping(value = "{id}/admin", version = "1.0")
+    public ResponseEntity<String> updateCompanyDetails(@PathVariable @NotBlank String id, @RequestBody CompanyDto companyDto){
+        boolean isUpdated = companyService.updateCompanyDetails(Long.valueOf(id), companyDto);
+        if(isUpdated){
+            return ResponseEntity.status(HttpStatus.OK).body("Company updated successfully");
+        }
+        else
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update company details");
+    }
+
+    @DeleteMapping(value = "{id}/admin", version = "1.0")
+    public ResponseEntity<String> deleteCompanyDetails(@PathVariable @NotBlank String id) {
+        companyService.deleteCompanyDetails(Long.valueOf(id));
+        return ResponseEntity.status(HttpStatus.OK).body("Deleted company details successfully");
     }
 }
