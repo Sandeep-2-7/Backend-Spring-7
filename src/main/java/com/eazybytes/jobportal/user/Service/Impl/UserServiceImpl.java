@@ -24,9 +24,9 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
-    private JobPortalUserRepository userRepository;
-    private RoleRepository roleRepository;
-    private CompanyRepository companyRepository;
+    private final JobPortalUserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final CompanyRepository companyRepository;
 
     @Override
     public Optional<UserDto> searchByEmail(String email) {
@@ -46,13 +46,14 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("The user is already an admin");
 
         Roles role = roleRepository.findRolesByName(ApplicationConstants.ROLE_EMPLOYEER).orElseThrow(() -> new RuntimeException("No Employeer role found"));
-
+        System.out.println(role.getName());
         user.setRole(role);
 
         return maptoUserDto(user);
     }
 
     @Override
+    @Transactional
     public UserDto updateCompnaytoUser(Long userId, Long companyId) {
         JobPortalUser user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("No user found with id " + userId));
 

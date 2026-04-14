@@ -19,7 +19,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping(value = "/search/admmin", version = "1.0")
+    @GetMapping(value = "/search/admin", version = "1.0")
     public ResponseEntity<?> searchByEmail(@RequestParam String email){
         Optional<UserDto> user = userService.searchByEmail(email);
         if(user.isEmpty()){
@@ -28,7 +28,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(user.get());
     }
 
-    @PatchMapping("/{userId}/role/employeer/admin")
+    @PatchMapping("/{userId}/role/employer/admin")
     public ResponseEntity<?> updateRole(@PathVariable Long userId){
         UserDto user =userService.updateRole(userId);
         return ResponseEntity.status(HttpStatus.OK).body(user);
@@ -37,6 +37,6 @@ public class UserController {
     @PatchMapping("/{userId}/company/{companyId}/admin")
     public ResponseEntity<?> updateCompanytoUser(@PathVariable Long userId, @PathVariable Long companyId){
         UserDto user = userService.updateCompnaytoUser(userId, companyId);
-
+        return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 }

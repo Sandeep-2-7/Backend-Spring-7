@@ -16,7 +16,7 @@ public class ApplicationConstants {
     public static final String SYSTEM = "SYSTEM";
 
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
-    public static final String ROLE_EMPLOYEER = "ROLE_EMPLOYEER";
+    public static final String ROLE_EMPLOYEER = "ROLE_EMPLOYER";
     public static final String ROLE_JOBSEEKER = "ROLE_JOBSEEKER";
 
 }
