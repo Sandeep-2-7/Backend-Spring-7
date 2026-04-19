@@ -42,4 +42,8 @@ public class PathConfig {
                         "/api/users/${userId}/company/${companyId}/admin");
     }
 
+    @Bean(value = "employerPaths")
+    public List<String> employerPaths(){
+        return List.of("/api/jobs/employer");
+    }
 }
