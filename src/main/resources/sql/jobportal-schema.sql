@@ -88,3 +88,25 @@ CREATE TABLE IF NOT EXISTS users (
      CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id),
      CONSTRAINT fk_users_company FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL
 );
+
+-- Create Profile table
+CREATE TABLE IF NOT EXISTS profiles (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    job_title VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    experience_level VARCHAR(50) NOT NULL,
+    professional_bio TEXT NOT NULL,
+    portfolio_website VARCHAR(500),
+    profile_picture MEDIUMBLOB,
+    profile_picture_name VARCHAR(255),
+    profile_picture_type VARCHAR(100),
+    resume MEDIUMBLOB,
+    resume_name VARCHAR(255),
+    resume_type VARCHAR(100),
+    created_at TIMESTAMP   DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by VARCHAR(20) NOT NULL,
+    updated_at TIMESTAMP   DEFAULT NULL,
+    updated_by VARCHAR(20) DEFAULT NULL,
+    CONSTRAINT fk_profile_user FOREIGN KEY (user_id) REFERENCES users(id)
+    );
