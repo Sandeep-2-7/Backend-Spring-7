@@ -51,7 +51,7 @@ public class Profile extends BaseEntity{
     private String portfolioWebsite;
 
     @Column(name = "profile_picture")
-    private Byte[] profilePicture;
+    private byte[] profilePicture;
 
     @Size(max = 255)
     @Column(name = "profile_picture_name")

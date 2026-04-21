@@ -46,4 +46,11 @@ public class PathConfig {
     public List<String> employerPaths(){
         return List.of("/api/jobs/employer");
     }
+
+    @Bean(value = "jobseekerPaths")
+    public List<String> jobseekerPaths(){
+        return List.of("/api/users/profile/jobseeker",
+                "/api/users/profile/picture/jobseeker",
+                "/api/users/profile/resume/jobseeker");
+    }
 }
