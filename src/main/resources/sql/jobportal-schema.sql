@@ -110,3 +110,30 @@ CREATE TABLE IF NOT EXISTS profiles (
     updated_by VARCHAR(20) DEFAULT NULL,
     CONSTRAINT fk_profile_user FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+
+--    Saved jobs
+CREATE TABLE IF NOT EXISTS saved_jobs (
+    user_id BIGINT NOT NULL,
+    job_id  BIGINT NOT NULL,
+    PRIMARY KEY (user_id, job_id),
+    CONSTRAINT fk_saved_jobs_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_saved_jobs_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS job_applications (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            user_id BIGINT NOT NULL,
+            job_id BIGINT NOT NULL,
+            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            status VARCHAR(50) DEFAULT 'PENDING' NOT NULL, -- PENDING, REVIEWED, SHORTLISTED, INTERVIEWED, OFFERED, REJECTED, WITHDRAWN
+            cover_letter TEXT,
+            notes TEXT, -- Internal notes from employer
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            created_by VARCHAR(20) NOT NULL,
+            updated_at TIMESTAMP DEFAULT NULL,
+            updated_by VARCHAR(20) DEFAULT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_user_job_application (user_id, job_id) -- Prevent duplicate applications
+);

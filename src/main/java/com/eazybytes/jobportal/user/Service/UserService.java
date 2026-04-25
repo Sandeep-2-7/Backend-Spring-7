@@ -1,9 +1,11 @@
 package com.eazybytes.jobportal.user.Service;
 
+import com.eazybytes.jobportal.dto.JobDto;
 import com.eazybytes.jobportal.dto.ProfileDto;
 import com.eazybytes.jobportal.dto.UserDto;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
@@ -21,4 +23,10 @@ public interface UserService {
     ProfileDto getProfilePicture(String email);
 
     ProfileDto getResume(String email);
+
+    JobDto saveJob(String email, Long jobId);
+
+    void unsaveJob(String email, Long jobId);
+
+    List<JobDto> getAllSavedJobs(String email);
 }

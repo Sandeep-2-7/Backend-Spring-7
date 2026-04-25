@@ -11,6 +11,8 @@ import org.hibernate.engine.internal.Nullability;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "JOBS")
@@ -122,4 +124,9 @@ public class Job extends BaseEntity{
     @Column(name = "status", nullable = false, length=20)
     private String status;
 
+    @ManyToMany(mappedBy = "savedJobs")
+    private Set<JobPortalUser> savedUsers = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "job")
+    private Set<JobApplication> jobApplications = new LinkedHashSet<>();
 }

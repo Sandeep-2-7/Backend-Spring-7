@@ -1,28 +1,24 @@
 package com.eazybytes.jobportal.user.Service.Impl;
 
 import com.eazybytes.jobportal.constants.ApplicationConstants;
+import com.eazybytes.jobportal.dto.JobDto;
 import com.eazybytes.jobportal.dto.ProfileDto;
 import com.eazybytes.jobportal.dto.UserDto;
-import com.eazybytes.jobportal.entity.Company;
-import com.eazybytes.jobportal.entity.JobPortalUser;
-import com.eazybytes.jobportal.entity.Profile;
-import com.eazybytes.jobportal.entity.Roles;
-import com.eazybytes.jobportal.repository.CompanyRepository;
-import com.eazybytes.jobportal.repository.JobPortalUserRepository;
-import com.eazybytes.jobportal.repository.ProfileRepository;
-import com.eazybytes.jobportal.repository.RoleRepository;
+import com.eazybytes.jobportal.entity.*;
+import com.eazybytes.jobportal.repository.*;
 import com.eazybytes.jobportal.user.Service.UserService;
+import com.eazybytes.jobportal.utility.ApplicationUtility;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -34,6 +30,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final CompanyRepository companyRepository;
     private final ProfileRepository profileRepository;
+    private final JobRepository  jobRepository;
 
     @Override
     public Optional<UserDto> searchByEmail(String email) {
@@ -123,6 +120,35 @@ public class UserServiceImpl implements UserService {
        return maptoProfileDto(profile,true);
     }
 
+    @Override
+    @Transactional
+    public JobDto saveJob(String email, Long jobId) {
+        JobPortalUser user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+        Job job = jobRepository.findById(jobId).orElseThrow(() -> new NoSuchElementException("No job found with id " + jobId));
+
+        user.getSavedJobs().add(job);
+        return ApplicationUtility.transformJobToDto(job);
+    }
+
+    @Override
+    @Transactional
+    public void unsaveJob(String email, Long jobId) {
+        JobPortalUser user =  userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+        Job job = jobRepository.findById(jobId).orElseThrow(() -> new NoSuchElementException("No job found with id "));
+
+        user.getSavedJobs().remove(job);
+    }
+
+    @Override
+    public List<JobDto> getAllSavedJobs(String email) {
+        JobPortalUser user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+        return user.getSavedJobs().stream().map(job -> ApplicationUtility.transformJobToDto(job))
+                .collect(Collectors.toList());
+    }
+
     private ProfileDto maptoProfileDto(Profile profile, boolean includeBinaryData) {
         ProfileDto dto;
         if (includeBinaryData) {
@@ -141,6 +167,7 @@ public class UserServiceImpl implements UserService {
         }
         return dto;
     }
+
     private Profile maptoProfile(Profile profile, ProfileDto profileDto, MultipartFile profilePicture, MultipartFile resume) {
         profile.setJobTitle(profileDto.jobTitle());
         profile.setLocation(profileDto.location());

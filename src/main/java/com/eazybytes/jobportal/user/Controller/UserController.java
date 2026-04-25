@@ -1,5 +1,6 @@
 package com.eazybytes.jobportal.user.Controller;
 
+import com.eazybytes.jobportal.dto.JobDto;
 import com.eazybytes.jobportal.dto.ProfileDto;
 import com.eazybytes.jobportal.dto.UserDto;
 import com.eazybytes.jobportal.user.Service.Impl.UserServiceImpl;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -94,4 +96,27 @@ public class UserController {
         headers.setContentDispositionFormData("attachment", profileDto.resumeName());
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(resume);
     }
+
+
+    @PostMapping(value = "/saved-jobs/{jobId}/jobseeker", version = "1.0")
+    public ResponseEntity<JobDto> saveJob(@PathVariable Long jobId, Authentication authentication){
+        String email = authentication.getName();
+        JobDto jobDto = userService.saveJob(email, jobId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(jobDto);
+    }
+
+    @DeleteMapping(value = "/saved-jobs/{jobId}/jobseeker", version = "1.0")
+    public ResponseEntity<String> unsaveJob(@PathVariable Long jobId, Authentication authentication){
+        String email = authentication.getName();
+        userService.unsaveJob(email, jobId);
+        return ResponseEntity.status(HttpStatus.OK).body("Job unsaved successfully");
+    }
+
+    @GetMapping(value = "/saved-jobs/jobseeker", version = "1.0")
+    public ResponseEntity<List<JobDto>> getSavedJobs(Authentication authentication) {
+        String userEmail = authentication.getName();
+        List<JobDto> savedJobDtos = userService.getAllSavedJobs(userEmail);
+        return ResponseEntity.ok(savedJobDtos);
+    }
+
 }
