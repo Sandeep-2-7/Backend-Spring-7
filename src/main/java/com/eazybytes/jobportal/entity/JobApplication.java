@@ -36,6 +36,11 @@ public class JobApplication extends BaseEntity{
     private Job job;
 
     @NotNull
+    @ColumnDefault("CURRENT_TIMESTAMP")
+    @Column(name = "applied_at", nullable = false)
+    private Instant appliedAt;
+
+    @NotNull
     @Size(max=50)
     @ColumnDefault("'PENDING'")
     @Column(name = "status", nullable = false, length = 50)

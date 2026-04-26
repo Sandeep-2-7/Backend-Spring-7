@@ -1,9 +1,7 @@
 package com.eazybytes.jobportal.user.Service.Impl;
 
 import com.eazybytes.jobportal.constants.ApplicationConstants;
-import com.eazybytes.jobportal.dto.JobDto;
-import com.eazybytes.jobportal.dto.ProfileDto;
-import com.eazybytes.jobportal.dto.UserDto;
+import com.eazybytes.jobportal.dto.*;
 import com.eazybytes.jobportal.entity.*;
 import com.eazybytes.jobportal.repository.*;
 import com.eazybytes.jobportal.user.Service.UserService;
@@ -15,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -31,6 +30,7 @@ public class UserServiceImpl implements UserService {
     private final CompanyRepository companyRepository;
     private final ProfileRepository profileRepository;
     private final JobRepository  jobRepository;
+    private final JobApplicationRepository jobApplicationRepository;
 
     @Override
     public Optional<UserDto> searchByEmail(String email) {
@@ -147,6 +147,64 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
         return user.getSavedJobs().stream().map(job -> ApplicationUtility.transformJobToDto(job))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public JobApplicationDto applyJob(String email, ApplyJobRequestDto applyJobRequestDto) {
+        JobPortalUser user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        Long jobId = applyJobRequestDto.getJobId();
+        Job job = jobRepository.findById(jobId).orElseThrow(() -> new NoSuchElementException("No job found with id " + jobId));
+        if(jobApplicationRepository.existsByJobIdAndUserId(jobId, user.getId()))
+            throw new RuntimeException("Already applied for this job");
+
+        JobApplication jobApplication = new JobApplication();
+        jobApplication.setUser(user);
+        jobApplication.setJob(job);
+        jobApplication.setAppliedAt(Instant.now());
+        jobApplication.setCoverLetter(applyJobRequestDto.getCover());
+        jobApplication.setStatus("PENDING");
+        jobApplicationRepository.save(jobApplication);
+
+        job.setApplicationsCount(job.getApplicationsCount()!=null ?  job.getApplicationsCount()+1 : 0);
+        return mapToJobApplicationDto(jobApplication);
+    }
+
+    @Override
+    @Transactional
+    public void withdrawJob(Long jobId, String email) {
+        JobPortalUser user =  userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        Job job = jobRepository.findById(jobId).orElseThrow(() -> new NoSuchElementException("No job found with id "));
+
+        if(!jobApplicationRepository.existsByJobIdAndUserId(jobId, user.getId()))
+            throw new RuntimeException("You didn't applied for this job");
+
+        jobApplicationRepository.deleteByJobIdAndUserId(jobId, user.getId());
+
+        if(job.getApplicationsCount()!=null &&  job.getApplicationsCount()>0){
+            job.setApplicationsCount(job.getApplicationsCount()-1);
+        }
+
+    }
+
+    @Override
+    public List<JobApplicationDto> getAllJobs(String email) {
+        JobPortalUser user =  userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getJobApplications().stream().map(this::mapToJobApplicationDto).collect(Collectors.toList());
+    }
+
+    private JobApplicationDto mapToJobApplicationDto(JobApplication jobApplication) {
+
+        Profile profile = jobApplication.getUser().getProfile();
+        ProfileDto profileDto=maptoProfileDto(profile,true);
+        Job job = jobApplication.getJob();
+        JobDto jobDto = ApplicationUtility.transformJobToDto(job);
+        JobApplicationDto jobApplicationDto = new JobApplicationDto(jobApplication.getId(),
+                jobApplication.getUser().getId(), jobApplication.getUser().getName(),
+                jobApplication.getUser().getName(),jobApplication.getUser().getMobileNumber(),
+                profileDto, jobDto, jobApplication.getAppliedAt(),
+                jobApplication.getStatus(), jobApplication.getCoverLetter(), jobApplication.getNotes());
+        return jobApplicationDto;
     }
 
     private ProfileDto maptoProfileDto(Profile profile, boolean includeBinaryData) {

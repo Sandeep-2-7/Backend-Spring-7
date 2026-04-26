@@ -1,8 +1,7 @@
 package com.eazybytes.jobportal.user.Service;
 
-import com.eazybytes.jobportal.dto.JobDto;
-import com.eazybytes.jobportal.dto.ProfileDto;
-import com.eazybytes.jobportal.dto.UserDto;
+import com.eazybytes.jobportal.dto.*;
+import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -29,4 +28,10 @@ public interface UserService {
     void unsaveJob(String email, Long jobId);
 
     List<JobDto> getAllSavedJobs(String email);
+
+    JobApplicationDto applyJob(String email, @Valid ApplyJobRequestDto applyJobRequestDto);
+
+    void withdrawJob(@Valid Long jobId, String email);
+
+    List<JobApplicationDto> getAllJobs(String email);
 }

@@ -1,12 +1,13 @@
 package com.eazybytes.jobportal.user.Controller;
 
-import com.eazybytes.jobportal.dto.JobDto;
-import com.eazybytes.jobportal.dto.ProfileDto;
-import com.eazybytes.jobportal.dto.UserDto;
+import com.eazybytes.jobportal.dto.*;
+import com.eazybytes.jobportal.entity.JobApplication;
 import com.eazybytes.jobportal.user.Service.Impl.UserServiceImpl;
 import com.eazybytes.jobportal.user.Service.UserService;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 import java.util.List;
 import java.util.Optional;
@@ -119,4 +121,24 @@ public class UserController {
         return ResponseEntity.ok(savedJobDtos);
     }
 
+    @PostMapping(value = "/job-applications/jobseeker", version = "1.0")
+    public ResponseEntity<JobApplicationDto> applyJob(@RequestBody @Valid ApplyJobRequestDto applyJobRequestDto, Authentication authentication){
+        String email = authentication.getName();
+        JobApplicationDto jobApplicationDto = userService.applyJob(email, applyJobRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).body(jobApplicationDto);
+    }
+
+    @DeleteMapping("/job-applications/{jobId}/jobseeker")
+    public ResponseEntity<String> withdrawJob(@PathVariable @Valid Long jobId, Authentication authentication){
+        String email = authentication.getName();
+        userService.withdrawJob(jobId, email);
+        return ResponseEntity.status(HttpStatus.OK).body("Job withdrawn successfully");
+    }
+
+    @GetMapping
+    public ResponseEntity<List<JobApplicationDto>> getAllJobApplications(Authentication authentication){
+        String email = authentication.getName();
+        List<JobApplicationDto> jobApplicationDtos = userService.getAllJobs(email);
+        return ResponseEntity.status(HttpStatus.OK).body(jobApplicationDtos);
+    }
 }
