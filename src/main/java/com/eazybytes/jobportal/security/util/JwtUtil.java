@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -34,7 +36,15 @@ public class JwtUtil {
     @Value("${jwt.expiration.hours:1}")
     private int expirationHours;
 
+    @Value("${jwt.prod.expiration.hours:1}")
+    private int prodExpirationHours;
+
     public String generateJWT(Authentication authentication) {
+
+        int expirationHrs = expirationHours;
+        List<String> profiles = Arrays.asList(env.getActiveProfiles());
+        if(profiles.contains("qa"))
+            expirationHrs = prodExpirationHours;
         String jwt;
         String secret = env.getProperty(ApplicationConstants.JWT_SECRET_KEY, ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);
         SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
@@ -47,7 +57,7 @@ public class JwtUtil {
                 .claim("mobileNumber", fetchedUser.getMobileNumber())
                 .claim("roles", authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(",")))
                 .issuedAt(new java.util.Date())
-                .expiration(new java.util.Date(new java.util.Date().getTime()+expirationHours*60*60*1000))
+                .expiration(new java.util.Date(new java.util.Date().getTime()+expirationHrs*60*60*1000))
                 .signWith(secretKey).compact();
         return  jwt;
     }
