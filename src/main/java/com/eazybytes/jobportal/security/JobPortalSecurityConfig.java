@@ -116,7 +116,7 @@ public class JobPortalSecurityConfig {
 
 
     @Bean
-    public AuthenticationManager authenticationManager(JobPortalUsernamePwdAuthenticationProvider authenticationProvider) {
+    public AuthenticationManager authenticationManager(AuthenticationProvider authenticationProvider) {
         return new ProviderManager(authenticationProvider);
     }
 
