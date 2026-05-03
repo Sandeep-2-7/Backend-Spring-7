@@ -19,6 +19,8 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.eazybytes.jobportal.utility.ApplicationUtility.mapToJobApplicationDto;
+
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +36,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<UserDto> searchByEmail(String email) {
-        Optional<JobPortalUser> user = userRepository.findByEmail(email);
+        Optional<JobPortalUser> user = userRepository.findJobPortalUserByEmail(email);
         return user.map(this::maptoUserDto);
     }
 
@@ -66,7 +68,7 @@ public class UserServiceImpl implements UserService {
         if(!user.getRole().getName().equals(ApplicationConstants.ROLE_EMPLOYEER))
             throw new RuntimeException("User must be an Employeer tog et assigned to a company");
 
-        user.setCompanyId(company);
+        user.setCompany(company);
 
         return maptoUserDto(user);
     }
@@ -74,7 +76,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public ProfileDto createOrUpdateCompany(String email, String profileJson, MultipartFile profilePicture, MultipartFile resume) {
-        JobPortalUser user = userRepository.findByEmail(email).orElseThrow(() -> new NoSuchElementException("No user Id found"));
+        JobPortalUser user = userRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new NoSuchElementException("No user Id found"));
         Profile profile = user.getProfile();
         if(profile==null)
         {
@@ -89,7 +91,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ProfileDto getProfile(String email) {
-        JobPortalUser user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        JobPortalUser user = userRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         Profile profile = user.getProfile();
 
         if(profile==null){
@@ -101,7 +103,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ProfileDto getProfilePicture(String email) {
-        JobPortalUser user =  userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        JobPortalUser user =  userRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         Profile profile = user.getProfile();
 
         if(profile.getProfilePicture()==null){
@@ -112,7 +114,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ProfileDto getResume(String email) {
-        JobPortalUser user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        JobPortalUser user = userRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         Profile profile = user.getProfile();
        if(profile == null)
            return null;
@@ -123,7 +125,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public JobDto saveJob(String email, Long jobId) {
-        JobPortalUser user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        JobPortalUser user = userRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
         Job job = jobRepository.findById(jobId).orElseThrow(() -> new NoSuchElementException("No job found with id " + jobId));
 
@@ -134,7 +136,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void unsaveJob(String email, Long jobId) {
-        JobPortalUser user =  userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        JobPortalUser user =  userRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
         Job job = jobRepository.findById(jobId).orElseThrow(() -> new NoSuchElementException("No job found with id "));
 
@@ -143,16 +145,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<JobDto> getAllSavedJobs(String email) {
-        JobPortalUser user = userRepository.findByEmail(email)
+        JobPortalUser user = userRepository.findJobPortalUserByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-        return user.getSavedJobs().stream().map(job -> ApplicationUtility.transformJobToDto(job))
+        return user.getSavedJobs().stream().map(ApplicationUtility::transformJobToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public JobApplicationDto applyJob(String email, ApplyJobRequestDto applyJobRequestDto) {
-        JobPortalUser user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        JobPortalUser user = userRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         Long jobId = applyJobRequestDto.getJobId();
         Job job = jobRepository.findById(jobId).orElseThrow(() -> new NoSuchElementException("No job found with id " + jobId));
         if(jobApplicationRepository.existsByJobIdAndUserId(jobId, user.getId()))
@@ -167,13 +169,14 @@ public class UserServiceImpl implements UserService {
         jobApplicationRepository.save(jobApplication);
 
         job.setApplicationsCount(job.getApplicationsCount()!=null ?  job.getApplicationsCount()+1 : 0);
+        jobRepository.save(job);
         return mapToJobApplicationDto(jobApplication);
     }
 
     @Override
     @Transactional
     public void withdrawJob(Long jobId, String email) {
-        JobPortalUser user =  userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        JobPortalUser user =  userRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         Job job = jobRepository.findById(jobId).orElseThrow(() -> new NoSuchElementException("No job found with id "));
 
         if(!jobApplicationRepository.existsByJobIdAndUserId(jobId, user.getId()))
@@ -183,29 +186,19 @@ public class UserServiceImpl implements UserService {
 
         if(job.getApplicationsCount()!=null &&  job.getApplicationsCount()>0){
             job.setApplicationsCount(job.getApplicationsCount()-1);
+            jobRepository.save(job);
         }
 
     }
 
     @Override
-    public List<JobApplicationDto> getAllJobs(String email) {
-        JobPortalUser user =  userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-        return user.getJobApplications().stream().map(this::mapToJobApplicationDto).collect(Collectors.toList());
+    public List<JobApplicationDto> getAllJobApplications(String email) {
+        JobPortalUser user =  userRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getJobApplications().stream().map(ApplicationUtility::mapToJobApplicationDto)
+                .collect(Collectors.toList());
     }
 
-    private JobApplicationDto mapToJobApplicationDto(JobApplication jobApplication) {
 
-        Profile profile = jobApplication.getUser().getProfile();
-        ProfileDto profileDto=maptoProfileDto(profile,true);
-        Job job = jobApplication.getJob();
-        JobDto jobDto = ApplicationUtility.transformJobToDto(job);
-        JobApplicationDto jobApplicationDto = new JobApplicationDto(jobApplication.getId(),
-                jobApplication.getUser().getId(), jobApplication.getUser().getName(),
-                jobApplication.getUser().getName(),jobApplication.getUser().getMobileNumber(),
-                profileDto, jobDto, jobApplication.getAppliedAt(),
-                jobApplication.getStatus(), jobApplication.getCoverLetter(), jobApplication.getNotes());
-        return jobApplicationDto;
-    }
 
     private ProfileDto maptoProfileDto(Profile profile, boolean includeBinaryData) {
         ProfileDto dto;
@@ -262,8 +255,8 @@ public class UserServiceImpl implements UserService {
         BeanUtils.copyProperties(user,userDto);
         userDto.setUserId(user.getId());
         userDto.setRole(user.getRole()!=null ? user.getRole().getName() : null);
-        userDto.setCompanyId(user.getCompanyId()!=null ? user.getCompanyId().getId() : null);
-        userDto.setCompanyName(user.getCompanyId()!=null ? user.getCompanyId().getName() : null);
+        userDto.setCompanyId(user.getCompany()!=null ? user.getCompany().getId() : null);
+        userDto.setCompanyName(user.getCompany()!=null ? user.getCompany().getName() : null);
 
         return userDto;
     }

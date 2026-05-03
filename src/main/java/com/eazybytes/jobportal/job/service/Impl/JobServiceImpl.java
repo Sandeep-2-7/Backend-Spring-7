@@ -1,9 +1,12 @@
 package com.eazybytes.jobportal.job.service.Impl;
 
+import com.eazybytes.jobportal.dto.JobApplicationDto;
 import com.eazybytes.jobportal.dto.JobDto;
 import com.eazybytes.jobportal.entity.Job;
+import com.eazybytes.jobportal.entity.JobApplication;
 import com.eazybytes.jobportal.entity.JobPortalUser;
 import com.eazybytes.jobportal.job.service.JobService;
+import com.eazybytes.jobportal.repository.JobApplicationRepository;
 import com.eazybytes.jobportal.repository.JobPortalUserRepository;
 import com.eazybytes.jobportal.repository.JobRepository;
 import com.eazybytes.jobportal.utility.ApplicationUtility;
@@ -24,15 +27,16 @@ import java.util.stream.Collectors;
 public class JobServiceImpl implements JobService {
     private final JobPortalUserRepository jobPortalUserRepository;
     private final JobRepository jobRepository;
+    private final JobApplicationRepository jobApplicationRepository;
 
     @Override
     public List<JobDto> findUser(String email) {
-        JobPortalUser user = jobPortalUserRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        JobPortalUser user = jobPortalUserRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
-        if(user.getCompanyId() == null)
+        if(user.getCompany() == null)
             throw new  RuntimeException("Company not assigned..");
 
-        List<Job> jobs = user.getCompanyId().getJobs();
+        List<Job> jobs = user.getCompany().getJobs();
         return jobs.stream().map(job -> ApplicationUtility.transformJobToDto(job)).collect(Collectors.toList());
     }
 
@@ -42,13 +46,13 @@ public class JobServiceImpl implements JobService {
      if(!status.equals("ACTIVE") && !status.equals("CLOSED") && !status.equals("DRAFT"))
          throw new  RuntimeException("Invalid Status - Status should be Active or Closed or Drafted");
 
-        JobPortalUser employer =  jobPortalUserRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("user not found"));
+        JobPortalUser employer =  jobPortalUserRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new RuntimeException("user not found"));
 
-        if (employer.getCompanyId() == null) {
+        if (employer.getCompany() == null) {
             throw new RuntimeException("Employer does not have a company assigned");
         }
 
-        Job job = employer.getCompanyId().getJobs().stream().filter(j -> j.getId().equals(id)).findFirst()
+        Job job = employer.getCompany().getJobs().stream().filter(j -> j.getId().equals(id)).findFirst()
                 .orElseThrow(() -> new RuntimeException("Job not found"));
         job.setStatus(status);
         return ApplicationUtility.transformJobToDto(job);
@@ -57,18 +61,24 @@ public class JobServiceImpl implements JobService {
     @Override
     @Transactional
     public JobDto createJob(String email, JobDto jobDto) {
-        JobPortalUser user = jobPortalUserRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("user not found"));
+        JobPortalUser user = jobPortalUserRepository.findJobPortalUserByEmail(email).orElseThrow(() -> new RuntimeException("user not found"));
 
-        if (user.getCompanyId() == null)
+        if (user.getCompany() == null)
             throw new RuntimeException("Company not assigned..");
 
         Job job = transformJobDtoToJob(jobDto);
-        job.setCompany(user.getCompanyId());
+        job.setCompany(user.getCompany());
         job.setPostedDate(Instant.now());
         job.setStatus("DRAFT");
         job.setApplicationsCount(0);
         Job j = jobRepository.save(job);
         return ApplicationUtility.transformJobToDto(j);
+    }
+
+    @Override
+    public List<JobApplicationDto> getApplicationByJobId(Long jobId) {
+        List<JobApplication> application = jobApplicationRepository.findByJobIdOrderByAppliedAtAsc(jobId);
+        return application.stream().map(ApplicationUtility::mapToJobApplicationDto).toList();
     }
 
     private Job transformJobDtoToJob(JobDto jobDto) {

@@ -1,9 +1,13 @@
 package com.eazybytes.jobportal.utility;
 
 import com.eazybytes.jobportal.constants.ApplicationConstants;
+import com.eazybytes.jobportal.dto.JobApplicationDto;
 import com.eazybytes.jobportal.dto.JobDto;
+import com.eazybytes.jobportal.dto.ProfileDto;
 import com.eazybytes.jobportal.entity.Job;
+import com.eazybytes.jobportal.entity.JobApplication;
 import com.eazybytes.jobportal.entity.JobPortalUser;
+import com.eazybytes.jobportal.entity.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -25,8 +29,8 @@ public class ApplicationUtility {
     return username;
     }
 
-    public static JobDto transformJobToDto(Job job){
-        JobDto dto = new JobDto(
+    public static JobDto transformJobToDto(Job job) {
+        return new JobDto(
                 job.getId(),
                 job.getTitle(),
                 job.getCompany().getId(),
@@ -52,6 +56,43 @@ public class ApplicationUtility {
                 job.getRemote(),
                 job.getStatus()
         );
-        return dto;
+    }
+
+    public static JobApplicationDto mapToJobApplicationDto(JobApplication application) {
+        // Map profile if exists
+        ProfileDto profileDto = null;
+        Profile profile = application.getUser().getProfile();
+        if (profile != null) {
+            profileDto = new ProfileDto(
+                    profile.getId(),
+                    profile.getUser().getId(),
+                    profile.getJobTitle(),
+                    profile.getLocation(),
+                    profile.getExperienceLevel(),
+                    profile.getProfessionalBio(),
+                    profile.getPortfolioWebsite(),
+                    profile.getProfilePicture(),
+                    profile.getProfilePictureName(),
+                    profile.getProfilePictureType(),
+                    profile.getResume(),
+                    profile.getResumeName(),
+                    profile.getResumeType(),
+                    profile.getCreatedAt(),
+                    profile.getUpdatedAt()
+            );
+        }
+        return new JobApplicationDto(
+                application.getId(),
+                application.getUser().getId(),
+                application.getUser().getName(),
+                application.getUser().getEmail(),
+                application.getUser().getMobileNumber(),
+                profileDto,
+                ApplicationUtility.transformJobToDto(application.getJob()),
+                application.getAppliedAt(),
+                application.getStatus(),
+                application.getCoverLetter(),
+                application.getNotes()
+        );
     }
 }

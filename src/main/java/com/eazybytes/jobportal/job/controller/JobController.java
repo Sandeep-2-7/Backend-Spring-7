@@ -1,6 +1,7 @@
 package com.eazybytes.jobportal.job.controller;
 
 
+import com.eazybytes.jobportal.dto.JobApplicationDto;
 import com.eazybytes.jobportal.dto.JobDto;
 import com.eazybytes.jobportal.job.service.JobService;
 import jakarta.validation.Valid;
@@ -45,5 +46,12 @@ public class JobController {
         String email = authentication.getName();
         JobDto dto = jobService.createJob(email, jobDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    }
+
+
+    @GetMapping(value = "/applications/{jobId}/employer", version = "1.0")
+    public ResponseEntity<List<JobApplicationDto>> getApplicationByJobId(@PathVariable Long jobId){
+        List<JobApplicationDto> jobApplicationDtos = jobService.getApplicationByJobId(jobId);
+        return ResponseEntity.status(HttpStatus.OK).body(jobApplicationDtos);
     }
 }

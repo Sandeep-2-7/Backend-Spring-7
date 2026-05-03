@@ -33,5 +33,6 @@ public interface UserService {
 
     void withdrawJob(@Valid Long jobId, String email);
 
-    List<JobApplicationDto> getAllJobs(String email);
+    List<JobApplicationDto> getAllJobApplications(String email);
+
 }

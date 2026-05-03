@@ -31,7 +31,7 @@ public class JobPortalUsernamePwdAuthenticationProvider implements Authenticatio
     public @Nullable Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = authentication.getName();
         String password = authentication.getCredentials().toString();
-        JobPortalUser user = jobPortalUserRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"+username));
+        JobPortalUser user = jobPortalUserRepository.findJobPortalUserByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"+username));
 
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole().getName()));
 

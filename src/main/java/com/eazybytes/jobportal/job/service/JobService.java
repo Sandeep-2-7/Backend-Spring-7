@@ -1,5 +1,6 @@
 package com.eazybytes.jobportal.job.service;
 
+import com.eazybytes.jobportal.dto.JobApplicationDto;
 import com.eazybytes.jobportal.dto.JobDto;
 import com.eazybytes.jobportal.entity.Job;
 import jakarta.validation.Valid;
@@ -13,4 +14,6 @@ public interface JobService {
     JobDto updateJobStatus(String email, Long id, String status);
 
     JobDto createJob(String email, @Valid JobDto jobDto);
+
+    List<JobApplicationDto> getApplicationByJobId(Long jobId);
 }

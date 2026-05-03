@@ -135,10 +135,10 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("Job withdrawn successfully");
     }
 
-    @GetMapping
+    @GetMapping(value = "/job-applications/jobseeker", version = "1.0")
     public ResponseEntity<List<JobApplicationDto>> getAllJobApplications(Authentication authentication){
         String email = authentication.getName();
-        List<JobApplicationDto> jobApplicationDtos = userService.getAllJobs(email);
+        List<JobApplicationDto> jobApplicationDtos = userService.getAllJobApplications(email);
         return ResponseEntity.status(HttpStatus.OK).body(jobApplicationDtos);
     }
 }

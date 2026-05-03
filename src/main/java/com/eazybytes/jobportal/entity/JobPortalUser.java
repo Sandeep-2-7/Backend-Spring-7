@@ -53,7 +53,7 @@ public class JobPortalUser extends BaseEntity{
     @ManyToOne(fetch = FetchType.EAGER)
     @OnDelete(action= OnDeleteAction.SET_NULL)
     @JoinColumn(name = "company_id")
-    private Company companyId;
+    private Company company;
 
     @OneToOne(mappedBy = "user")
     private Profile profile;
