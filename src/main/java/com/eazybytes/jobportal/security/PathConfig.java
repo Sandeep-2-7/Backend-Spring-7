@@ -21,7 +21,8 @@ public class PathConfig {
                 "/api/v3/api-docs/**",
                 "/swagger-resources/**",
                 "/swagger-ui.html",
-                "/webjars/**");
+                "/webjars/**",
+                "/actuator/**");
     }
 
     @Bean(value = "securedPaths")
