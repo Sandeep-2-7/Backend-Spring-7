@@ -22,7 +22,7 @@ public class PathConfig {
                 "/swagger-resources/**",
                 "/swagger-ui.html",
                 "/webjars/**",
-                "/actuator/**");
+                "/jobportal/actuator/**");
     }
 
     @Bean(value = "securedPaths")

@@ -2,6 +2,8 @@ package com.eazybytes.jobportal.dto;
 
 import org.springframework.http.HttpStatus;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
-public record ErrorResponseDto(String apiPath, String message, HttpStatus errorCode, Instant timestamp) {
+public record ErrorResponseDto(String apiPath, HttpStatus errorCode, String errorMessage,
+                               LocalDateTime errorTime, String traceId) {
 }
